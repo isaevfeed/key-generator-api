@@ -61,6 +61,8 @@ func (s *Server) HandleHello() http.HandlerFunc {
 
 func (s *Server) HandleGenerate() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		keyType := req.FormValue("type")
 		maxKeyLen := req.FormValue("maxLength")
 		maxKeyLenNum, err := strconv.ParseFloat(maxKeyLen, 64)
@@ -70,7 +72,8 @@ func (s *Server) HandleGenerate() http.HandlerFunc {
 
 		gen := gen.NewGenerator(keyType, maxKeyLenNum, initRedis())
 
-		io.WriteString(w, gen.GenerateKey())
+		io.WriteString(w, MakeResponseStringify(200, gen.GenerateKey()))
+
 	}
 }
 
