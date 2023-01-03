@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
 
@@ -22,7 +21,6 @@ func main() {
 	host, _ := os.LookupEnv("SERVER_HOST")
 	port, _ := os.LookupEnv("SERVER_PORT")
 
-	router := mux.NewRouter()
-	srv := serv.New(fmt.Sprintf("%s:%s", host, port), router)
+	srv := serv.New(fmt.Sprintf("%s:%s", host, port))
 	srv.Listen()
 }

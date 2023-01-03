@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	gen "isaevfeed/internal/app"
@@ -22,8 +23,8 @@ type Server struct {
 	Router *mux.Router
 }
 
-func New(Addr string, Router *mux.Router) *Server {
-	return &Server{Addr, Router}
+func New(Addr string) *Server {
+	return &Server{Addr: Addr, Router: mux.NewRouter()}
 }
 
 func (s *Server) Listen() {
@@ -43,12 +44,15 @@ func (s *Server) Listen() {
 	log.Printf("Server is running on the %s", s.Addr)
 
 	// Wait for an interrupt
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	<-c
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	envTimeout, _ := os.LookupEnv("SERVER_TIMEOUT")
+	timeout, _ := strconv.Atoi(envTimeout)
 
 	// Attempt a graceful shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 	srv.Shutdown(ctx)
 }
